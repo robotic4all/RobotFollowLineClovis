@@ -1,7 +1,7 @@
 /*	#############################################
-	# 			ROBÔ DE RESGATE (OBR)			#
-	#			 EQUIPE ROBOTIC4ALL				#
-	#					2019					#
+	#             ROBOT FOLLOW LINE             #
+	#             EQUIPE ROBOTIC4ALL	    #
+	#	             2019	            #
 	#############################################  */
 
 /* INCLUINDO BIBLIOTECAS */
