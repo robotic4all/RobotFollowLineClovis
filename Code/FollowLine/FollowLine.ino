@@ -137,28 +137,32 @@ void initRobot(){
 void calibrateArray() {
   Serial.println("Calibrando Sensores Array...");
 
-  onLed(1000);
+  onLed();
 
   for(uint16_t i = 0; i < 100; i++){ arraySensors.calibrate(); }
 
-  onLed(10);
+  offLed();
 
   Serial.println("Sensores Calibrados!");
+
+  delay(2000);
 }
 
 void calibrateSideSensors(){
   Serial.println("Calibrando Sensores Laterais...");
 
-  onLed(1000);
+  onLed();
 
   for(uint16_t i = 0; i < 100; i++){
     sensorSideLeft.calibrate();
     sensorSideRight.calibrate();
   }
 
-  onLed(10);
+  offLed();
 
   Serial.println("Sensores Calibrados!");
+
+  delay(2000);
 }
 
 bool btnPressed(int btn){
@@ -325,15 +329,18 @@ void setup() {
 }
 
 void loop() {
-  if(btnPressed(btnLeft)){
-    calibrateArray();
-    calibrateSideSensors();
-  }
-  if(btnPressed(btnRight)){
+  if(btnPressed(btnRight)) && btnPressed(btnLeft){
     startRun();
     while (!btnPressed(btnLeft)){
       followLine();
     }
     finishRun();
   }
+  if(btnPressed(btnLeft)){
+    calibrateSideSensors();
+  }
+  if(btnPressed(btnRight)){
+    calibrateArray();
+  }
+
 }
