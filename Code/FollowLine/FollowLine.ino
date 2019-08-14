@@ -1,9 +1,11 @@
 /*
-  #####################
-	# ROBOT FOLLOW LINE #
-	# TEAM ROBOTIC4ALL  #
-	#	AUGUST 2019	      #
-	#####################
+  #########################################
+	# ROBOT FOLLOW LINE USING TSL           #
+	# TEAM ROBOTIC4ALL                      #
+	#	FACEBOOK:  facebook.com/Robotic4All   #
+  #	INSTAGRAM: instagram.com/Robotic4All  #
+  #	GITHUB:    github.com/Robotic4All     #
+	#########################################
 */
 
 /* INCLUINDO BIBLIOTECAS */
@@ -84,34 +86,7 @@ int geo5 = 0;
 const int btnLeft  = 2;
 const int btnRight = 3;
 
-void onLed(int time){
-  digitalWrite(led, HIGH);
-  delay(time);
-  digitalWrite(led, LOW);
-}
-
-void onLed(){
-  digitalWrite(led, HIGH);
-}
-
-void offLed(){
-  digitalWrite(led, LOW);
-}
-
-void onBuzzer(int time){
-  digitalWrite(buzzer, HIGH);
-  delay(time);
-  digitalWrite(buzzer, LOW);
-}
-
-void onBuzzer(){
-  digitalWrite(buzzer, HIGH);
-}
-
-void offBuzzer(){
-  digitalWrite(buzzer, LOW);
-}
-
+/*FUNÇÃO DE ÍNICIO DO ROBÔ*/
 void initRobot(){
   //Inicializando Array
   arraySensors.setTypeAnalog();
@@ -122,6 +97,60 @@ void initRobot(){
   onLed(500);
   onBuzzer(100);
   onLed(500);
+}
+
+/*FUNÇÃO PARA PISCAR LED E APITAR BUZZER NO COMEÇO DA CORRIDA*/
+void startRun(){
+  onBuzzer(1000);
+  delay(10);
+  onLed();
+  onBuzzer(100);
+  delay(10);
+  offLed();
+  onBuzzer(100);
+  delay(10);
+  onLed();
+  onBuzzer(100);
+  delay(10);
+  offLed();
+  onBuzzer(1000);
+}
+
+/*FUNÇÃO PARA PISCAR LED E APITAR BUZZER NO FINAL DA CORRIDA*/
+void finishRun(){
+  motorLeft.brake();
+  motorRight.brake();
+  onBuzzer(100);
+  delay(10);
+  onLed();
+  onBuzzer(100);
+  delay(10);
+  offLed();
+  onBuzzer(100);
+  delay(10);
+  onLed();
+  onBuzzer(100);
+  delay(10);
+  offLed();
+  onBuzzer(100);
+}
+
+/*FUNÇÕES DO LED*/
+void onLed(int time){ digitalWrite(led, HIGH); delay(time); digitalWrite(led, LOW);}
+void onLed(){digitalWrite(led, HIGH);}
+void offLed(){digitalWrite(led, LOW);}
+
+/*FUNÇÕES DO BUZZER*/
+void onBuzzer(int time){digitalWrite(buzzer, HIGH);delay(time);digitalWrite(buzzer, LOW);}
+void onBuzzer(){digitalWrite(buzzer, HIGH);}
+void offBuzzer(){digitalWrite(buzzer, LOW);}
+
+/*FUNÇÕES PARA CHECAR SE O BOTÃO FOI PRECIONADO*/
+bool btnPressed(int btn){
+  if(digitalRead(btn) == LOW)
+    return true;
+  else
+    return false;
 }
 
 void calibrateArray() {
@@ -142,12 +171,6 @@ void calibrateArray() {
   delay(2000);
 }
 
-bool btnPressed(int btn){
-  if (digitalRead(btn) == LOW)
-    return true;
-  else
-    return false;
-}
 
 void followLine(){
   //Parada pelo Sensor Lateral
@@ -175,26 +198,23 @@ void followLine(){
 
   PIDValue = (P*Kp) + (I*Ki) + (D*Kd);
 
-  if (PIDValue >=  50) PIDValue = 50;
+  if (PIDValue >=  50) PIDValue =  50;
   if (PIDValue <= -50) PIDValue = -50;
 
   // Atualiza os valores de I e do erroAnterior.
   lastError = error;
-  countI += error;
+  countI   += error;
 
   // Atribuição da velocidade dos motores.
   int speedRight = speedBase + PIDValue;
-  int speedLeft = speedBase - PIDValue;
+  int speedLeft  = speedBase - PIDValue;
 
   // Checa se as velocidades ultrapassam 255 ou são mensores que 0, corrige caso necessario
-  if (speedRight > speedMax)
-    speedRight = speedMax;
-  if (speedLeft > speedMax)
-    speedLeft = speedMax;
-  if (speedRight < speedMin)
-    speedRight = 0;
-  if (speedLeft < speedMin)
-    speedLeft = 0;
+  if(speedRight > speedMax) speedRight = speedMax;
+  if(speedLeft  > speedMax) speedLeft = speedMax;
+  
+  if(speedRight < speedMin) speedRight = speedMin;
+  if(speedLeft  < speedMin) speedLeft  = speedMin;
 
   speedRight = map(speedRight, 0, 100, 0, 255);
   speedLeft  = map(speedLeft,  0, 100, 0, 255);
@@ -208,18 +228,11 @@ void readSideSensors() {
   vSSLeft  = analogRead(sensorSideLeft);
   vSSRight = analogRead(sensorSideRight);
     
-  if(vSSLeft < media) {vSSLeft = 1;} 
-  else {vSSLeft = 0;}
+  if(vSSLeft < media) vSSLeft = 1; 
+  else vSSLeft = 0;
   
-  if(vSSRight < media) {vSSRight = 1;} 
-  else {vSSRight = 0;}
-
-  
-  /*Serial.print("vSSLeft = ");
-  Serial.println(vSSLeft);
-  Serial.print("vSSRight = ");
-  Serial.println(vSSRight);
-  Serial.println();*/
+  if(vSSRight < media) vSSRight = 1; 
+  else vSSRight = 0;
   
 }
 
@@ -240,7 +253,6 @@ void detectMarker() {
       markerLeft();
     }
     else if(geo == 0 && geo1 == 2 && geo2 == 0) {
-      final++;
       markerRight();
     }
     else if(geo == 0 && ((geo1 == 3) || (geo2 == 3) || (geo3 == 3))) {
@@ -254,61 +266,24 @@ void detectMarker() {
   }
 }
 
-void intersection(){
-  onLed();
-  onBuzzer();
-}
+void intersection(){ onLed(); onBuzzer();}
 
-void markerLeft(){
-  onLed();
-  onBuzzer();
-}
+void markerLeft(){ onLed(); onBuzzer();}
 
 void markerRight() {
   onLed();
   onBuzzer();
+
+  final++;
 
   if(final >= 2) {
     offBuzzer();
     offLed();
     motorLeft.brake();
     motorRight.brake();
-    delay(10000);
+    delay(5000);
     final = 0;
   } 
-}
-void startRun(){
-  onBuzzer(1000);
-  delay(10);
-  onLed();
-  onBuzzer(100);
-  delay(10);
-  offLed();
-  onBuzzer(100);
-  delay(10);
-  onLed();
-  onBuzzer(100);
-  delay(10);
-  offLed();
-  onBuzzer(1000);
-}
-
-void finishRun(){
-  motorLeft.brake();
-  motorRight.brake();
-  onBuzzer(100);
-  delay(10);
-  onLed();
-  onBuzzer(100);
-  delay(10);
-  offLed();
-  onBuzzer(100);
-  delay(10);
-  onLed();
-  onBuzzer(100);
-  delay(10);
-  offLed();
-  onBuzzer(100);
 }
 
 void setup() {
@@ -322,10 +297,11 @@ void setup() {
   pinMode(motorLeftB,       OUTPUT);
   pinMode(motorLeftA,       OUTPUT);
   pinMode(motorLeftSpeed,   OUTPUT);
-  pinMode(buzzer,  OUTPUT);
-  pinMode(led,     OUTPUT);
-  pinMode(btnLeft, INPUT_PULLUP);
-  pinMode(btnRight,INPUT_PULLUP);   
+  
+  pinMode(buzzer,           OUTPUT);
+  pinMode(led,              OUTPUT);
+  pinMode(btnLeft,          INPUT_PULLUP);
+  pinMode(btnRight,         INPUT_PULLUP);   
 
   initRobot();  
   
