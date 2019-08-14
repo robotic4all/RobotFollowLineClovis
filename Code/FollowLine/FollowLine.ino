@@ -27,9 +27,9 @@ Motor motorLeft  = Motor(motorLeftA,  motorLeftB,  motorLeftSpeed,  offsetA, stb
 Motor motorRight = Motor(motorRightA, motorRightB, motorRightSpeed, offsetB, stby);
 
 //Variaveis Auxiliares Velocidade
-#define speedBase  60
+#define speedBase  30      //25; 30;
 #define speedMin   0
-#define speedMax   200
+#define speedMax   100
 
 /*Declarando variaveis do Array*/
 QTRSensors arraySensors;
@@ -39,14 +39,14 @@ uint16_t valuesSensors[sensorCount];
 #define emitterPin 12
 
 /*VARIAVEIS PID*/
-float   Kp = 0.08,  //0.1;  0.8;    0.06
+float   Kp = 1.45,   //0.6;  1.0;   1.5;  1.45;
         Ki = 0.0,
-        Kd = 0.6;   //1.0;  8.0;    1.0
-
+        Kd = 15.0;   //6.0;  15.0; 15.0; 15.0;
+        
 uint16_t position = 0;
 
 int error         = 0;
-int setPoint      = 2500;
+int setPoint      = 50;
 
 int P = 0;
 int I = 0;
@@ -58,8 +58,8 @@ int lastError = 0;
 int countI    = 0;
 
 /*SENSORES LATERAIS*/
-QTRSensors sensorSideLeft;
-QTRSensors sensorSideRight;
+#define sensorSideLeft  A7
+#define sensorSideRight A6
 
 uint16_t vSSLeft  = 0,
          vSSRight = 0;
@@ -81,8 +81,8 @@ int geo5 = 0;
 #define led 4
 
 /*BOTÔES*/
-#define btnLeft  3
-#define btnRight 2
+const int btnLeft  = 2;
+const int btnRight = 3;
 
 void onLed(int time){
   digitalWrite(led, HIGH);
@@ -118,16 +118,6 @@ void initRobot(){
   arraySensors.setSensorPins((const uint8_t[]){A5, A4, A3, A2, A1, A0}, sensorCount);
   arraySensors.setEmitterPin(emitterPin);
 
-  //Inicializando Sensor Lateral Esquerdo 
-  sensorSideLeft.setTypeAnalog();
-  sensorSideLeft.setSensorPins((const uint8_t[]){A6}, 1);
-  sensorSideLeft.setEmitterPin(A6);
-
-  //Inicializando Sensor Lateral Direito
-  sensorSideRight.setTypeAnalog();
-  sensorSideRight.setSensorPins((const uint8_t[]){A7}, 1);
-  sensorSideRight.setEmitterPin(A7);
-
   //Led e Buzzer
   onLed(500);
   onBuzzer(100);
@@ -137,27 +127,14 @@ void initRobot(){
 void calibrateArray() {
   Serial.println("Calibrando Sensores Array...");
 
-  onLed();
-
-  for(uint16_t i = 0; i < 100; i++){ arraySensors.calibrate(); }
-
-  offLed();
-
-  Serial.println("Sensores Calibrados!");
-
-  delay(2000);
-}
-
-void calibrateSideSensors(){
-  Serial.println("Calibrando Sensores Laterais...");
+  delay(1000);
 
   onLed();
+  onBuzzer(10);
 
-  for(uint16_t i = 0; i < 100; i++){
-    sensorSideLeft.calibrate();
-    sensorSideRight.calibrate();
-  }
+  for(uint16_t i = 0; i < 200; i++){ arraySensors.calibrate(); }
 
+  onBuzzer(10);
   offLed();
 
   Serial.println("Sensores Calibrados!");
@@ -166,7 +143,7 @@ void calibrateSideSensors(){
 }
 
 bool btnPressed(int btn){
-  if (digitalRead(btn) == HIGH)
+  if (digitalRead(btn) == LOW)
     return true;
   else
     return false;
@@ -174,20 +151,32 @@ bool btnPressed(int btn){
 
 void followLine(){
   //Parada pelo Sensor Lateral
-  //detectMarker();
+  detectMarker();
 
   // Cálculo do PID.
   position = arraySensors.readLineWhite(valuesSensors);
+
+  position = map(position, 0, 5000, 0, 100);
+
   /*Serial.println(position);
   delay(250);*/
 
   error = position - setPoint;
 
-  P = (Kp * error);
-  I = (Ki * countI);
-  D = (Kd * (error - lastError));
+  P = error;
+  I = countI;
+  D = (error - lastError);
 
-  PIDValue = P + I + D;
+  if (I >=  50) I =  50;
+  if (I <= -50) I = -50;
+
+  if (D >=  50) D =  50;
+  if (D <= -50) D = -50;
+
+  PIDValue = (P*Kp) + (I*Ki) + (D*Kd);
+
+  if (PIDValue >=  50) PIDValue = 50;
+  if (PIDValue <= -50) PIDValue = -50;
 
   // Atualiza os valores de I e do erroAnterior.
   lastError = error;
@@ -207,28 +196,31 @@ void followLine(){
   if (speedLeft < speedMin)
     speedLeft = 0;
 
+  speedRight = map(speedRight, 0, 100, 0, 255);
+  speedLeft  = map(speedLeft,  0, 100, 0, 255);
+
   //Atribui as velocidades aos motores
   motorLeft.drive(speedLeft);
   motorRight.drive(speedRight);
 }
 
 void readSideSensors() {
-  vSSLeft  = sensorSideLeft.readLineWhite(1);
-  vSSRight = sensorSideRight.readLineWhite(1);
-
+  vSSLeft  = analogRead(sensorSideLeft);
+  vSSRight = analogRead(sensorSideRight);
+    
   if(vSSLeft < media) {vSSLeft = 1;} 
   else {vSSLeft = 0;}
-
+  
   if(vSSRight < media) {vSSRight = 1;} 
   else {vSSRight = 0;}
 
-  /*
-  Serial.print("vSSLeft = ");
+  
+  /*Serial.print("vSSLeft = ");
   Serial.println(vSSLeft);
   Serial.print("vSSRight = ");
   Serial.println(vSSRight);
-  Serial.println();
-  */
+  Serial.println();*/
+  
 }
 
 void detectMarker() {
@@ -245,11 +237,11 @@ void detectMarker() {
   }
   else if(geo1 != geo) {
     if(geo == 0 && geo1 == 1 && geo2 == 0) {
-      final++;
-      markerRight();
+      markerLeft();
     }
     else if(geo == 0 && geo1 == 2 && geo2 == 0) {
-      markerLeft();
+      final++;
+      markerRight();
     }
     else if(geo == 0 && ((geo1 == 3) || (geo2 == 3) || (geo3 == 3))) {
       intersection();
@@ -277,6 +269,8 @@ void markerRight() {
   onBuzzer();
 
   if(final >= 2) {
+    offBuzzer();
+    offLed();
     motorLeft.brake();
     motorRight.brake();
     delay(10000);
@@ -300,6 +294,8 @@ void startRun(){
 }
 
 void finishRun(){
+  motorLeft.brake();
+  motorRight.brake();
   onBuzzer(100);
   delay(10);
   onLed();
@@ -319,28 +315,31 @@ void setup() {
   Serial.begin(9600);
 
   //Setas os pinos como entrada ou saida
-  pinMode(buzzer, OUTPUT);
-  pinMode(led,    OUTPUT);
-  pinMode(btnLeft, INPUT);
-  pinMode(btnRight,INPUT);
+  pinMode(motorLeftSpeed,   OUTPUT);
+  pinMode(motorLeftA,       OUTPUT);
+  pinMode(motorLeftB,       OUTPUT);
+  pinMode(stby,             OUTPUT);
+  pinMode(motorLeftB,       OUTPUT);
+  pinMode(motorLeftA,       OUTPUT);
+  pinMode(motorLeftSpeed,   OUTPUT);
+  pinMode(buzzer,  OUTPUT);
+  pinMode(led,     OUTPUT);
+  pinMode(btnLeft, INPUT_PULLUP);
+  pinMode(btnRight,INPUT_PULLUP);   
 
   initRobot();  
   
 }
 
 void loop() {
-  if(btnPressed(btnRight)) && btnPressed(btnLeft){
+  if(btnPressed(btnLeft)){
     startRun();
-    while (!btnPressed(btnLeft)){
+    while(!btnPressed(btnLeft)){
       followLine();
     }
     finishRun();
   }
-  if(btnPressed(btnLeft)){
-    calibrateSideSensors();
-  }
   if(btnPressed(btnRight)){
     calibrateArray();
   }
-
 }
