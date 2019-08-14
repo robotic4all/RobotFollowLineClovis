@@ -1,13 +1,9 @@
 # ROBOT FOLLOW LINE USING ARDUINO
 ## TEAM ROBOTI4ALL
 
-  #########################################
-	# ROBOT FOLLOW LINE USING TSL           #
-	# TEAM ROBOTIC4ALL                      #
-	#	FACEBOOK:  facebook.com/Robotic4All   #
-  #	INSTAGRAM: instagram.com/Robotic4All  #
-  #	GITHUB:    github.com/Robotic4All     #
-	#########################################
+FACEBOOK:  facebook.com/Robotic4All
+INSTAGRAM: instagram.com/Robotic4All
+GITHUB:    github.com/Robotic4All
 
 Hello
 We are the RobotiAll team.
