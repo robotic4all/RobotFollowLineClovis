@@ -1,6 +1,6 @@
 /*
   #########################################
-	# ROBOT FOLLOW LINE USING TSL           #
+	# ROBOT FOLLOW LINE                     #
 	# TEAM ROBOTIC4ALL                      #
 	#	FACEBOOK:  facebook.com/Robotic4All   #
   #	INSTAGRAM: instagram.com/Robotic4All  #
